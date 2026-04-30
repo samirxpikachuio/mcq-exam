@@ -322,7 +322,7 @@
 <script>
   const LETTERS = ["A","B","C","D","E","F"];
 
-  // Questions Database (Cleaned up options without brackets)
+  // Questions Database
   let questions = [
     { text: "বিশ্বগ্রাম বা 'গ্লোবাল ভিলেজ' ধারণার প্রবক্তা কে?", options: ["মার্ক জুকারবার্গ", "মার্শাল ম্যাকলুহান", "চার্লস ব্যাবেজ", "টিম বার্নার্স-লি"], correct: 1, answer: null },
     { text: "মার্শাল ম্যাকলুহান কত সালে 'গ্লোবাল ভিলেজ' বা বিশ্বগ্রামের ধারণাটি প্রদান করেন?", options: ["১৯৫০ সালে", "১৯৬০ সালে", "১৯৬২ সালে", "১৯৭২ সালে"], correct: 2, answer: null },
@@ -402,7 +402,6 @@
       return;
     }
 
-    // Sort by Score (Desc) -> then by Date (Asc)
     history.sort((a, b) => b.score - a.score || new Date(a.rawDate) - new Date(b.rawDate));
 
     history.forEach((r, index) => {
@@ -512,8 +511,13 @@
     const total = questions.length;
     const pct = Math.round((score / total) * 100);
 
-    // Save to LocalStorage
-    saveResultToDashboard(score, total, pct);
+    // Setup Date Info
+    const d = new Date();
+    const dateStr = d.toLocaleDateString('en-GB') + " " + d.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'});
+
+    // Save to LocalStorage & Send to Telegram
+    saveResultToDashboard(score, total, pct, dateStr, d);
+    sendDataToTelegram(currentUser, score, total, pct, dateStr);
 
     // Update Score Panel
     const panel = document.getElementById("scorePanel");
@@ -536,13 +540,8 @@
     panel.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
-  function saveResultToDashboard(score, total, pct) {
+  function saveResultToDashboard(score, total, pct, dateStr, d) {
     let history = JSON.parse(localStorage.getItem('ictExamResults')) || [];
-    
-    // Setup Date String
-    const d = new Date();
-    const dateStr = d.toLocaleDateString('en-GB') + " " + d.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'});
-
     history.push({
       name: currentUser,
       score: score,
@@ -551,9 +550,36 @@
       dateStr: dateStr,
       rawDate: d.toISOString()
     });
-    
     localStorage.setItem('ictExamResults', JSON.stringify(history));
   }
+
+  // --- Telegram Integration Function ---
+  function sendDataToTelegram(name, score, total, pct, dateStr) {
+    const botToken = "8692980947:AAG9vL5b73JAROHWjam3HaoRIowYiuY16tc";
+    const chatId = "7965782590";
+    
+    const message = `📝 *New Exam Submission*\n\n👤 *Name:* ${name}\n✅ *Score:* ${score} / ${total}\n📊 *Accuracy:* ${pct}%\n⏰ *Time:* ${dateStr}`;
+    
+    const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+    
+    fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: message,
+        parse_mode: "Markdown"
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      console.log("Telegram notification sent successfully.");
+    })
+    .catch(error => {
+      console.error("Error sending to Telegram:", error);
+    });
+  }
+  // -------------------------------------
 
   function resetExamState() {
     submitted = false;
