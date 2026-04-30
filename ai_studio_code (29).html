@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HSC ICT Model Test</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #F5F3EE;
+      --surface: #FFFFFF;
+      --border: #E2DED6;
+      --text: #1A1916;
+      --muted: #7A7670;
+      --accent: #1D6B52;
+      --accent-light: #E1F5EE;
+      --accent-dark: #0F4D3A;
+      --warn: #B85C00;
+      --warn-light: #FFF3E0;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2rem 1rem 4rem;
+    }
+
+    .page {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    /* Views */
+    .view { display: none; animation: fadeIn 0.3s ease; }
+    .view.active-view { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Login & Dashboard specific styles */
+    .center-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 3rem 2rem;
+      text-align: center;
+      margin-top: 5vh;
+    }
+
+    .center-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .center-subtitle {
+      color: var(--muted);
+      margin-bottom: 2rem;
+      font-size: 15px;
+    }
+
+    .input-group {
+      max-width: 350px;
+      margin: 0 auto 1.5rem;
+      text-align: left;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 16px;
+      color: var(--text);
+      background: var(--bg);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .form-input:focus { border-color: var(--accent); }
+
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* Dashboard Table */
+    .table-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+    
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+    th { background: var(--bg); font-weight: 600; color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;}
+    tr:last-child td { border-bottom: none; }
+    .rank { font-weight: bold; color: var(--muted); }
+    .score-badge { background: var(--accent-light); color: var(--accent-dark); padding: 4px 10px; border-radius: 99px; font-weight: 600; font-size: 14px; }
+
+    /* Header */
+    .exam-header {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem 2rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .exam-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 26px;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .exam-subtitle { font-size: 14px; color: var(--muted); }
+    .meta-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip { font-size: 12px; font-weight: 500; padding: 5px 12px; border-radius: 99px; border: 1px solid var(--border); background: var(--bg); color: var(--muted); }
+
+    /* Stats */
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.25rem; }
+    .stat-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; text-align: center; }
+    .stat-val { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--text); }
+    .stat-val.green { color: var(--accent); }
+    .stat-val.amber { color: var(--warn); }
+    .stat-label { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+    /* Progress */
+    .progress-wrap { margin-bottom: 1.5rem; }
+    .progress-info { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+    .progress-track { height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.4s cubic-bezier(0.4,0,0.2,1); }
+
+    /* Question card */
+    .q-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1rem; transition: border-color 0.2s; }
+    .q-card.answered { border-color: #A8D5C4; }
+    .q-top { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 1.1rem; }
+    .q-num { min-width: 30px; height: 30px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: var(--muted); flex-shrink: 0; transition: all 0.2s; }
+    .q-card.answered .q-num { background: var(--accent-light); border-color: var(--accent); color: var(--accent-dark); }
+    .q-text { font-size: 16px; line-height: 1.65; padding-top: 4px; color: var(--text); font-weight: 500; }
+
+    /* Options */
+    .options { display: flex; flex-direction: column; gap: 8px; }
+    .option { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s; user-select: none; }
+    .option:hover { background: var(--bg); border-color: #C5C1B9; }
+    .option.selected { background: var(--accent-light); border-color: var(--accent); }
+    .opt-letter { width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: var(--muted); flex-shrink: 0; transition: all 0.15s; }
+    .option.selected .opt-letter { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .opt-text { font-size: 15px; color: var(--text); }
+
+    /* Result state */
+    .option.correct { background: var(--accent-light); border-color: var(--accent); }
+    .option.correct .opt-letter { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .option.wrong { background: #FEE9E9; border-color: #E24B4A; }
+    .option.wrong .opt-letter { background: #E24B4A; border-color: #E24B4A; color: #fff; }
+    .option.disabled { cursor: default; pointer-events: none; }
+
+    /* Result badge */
+    .result-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 99px; margin-top: 12px; }
+    .result-badge.correct-badge { background: var(--accent-light); color: var(--accent-dark); }
+    .result-badge.wrong-badge { background: #FEE9E9; color: #A32D2D; }
+
+    /* Actions */
+    .actions { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 1.75rem; }
+    .btn { padding: 10px 22px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: transparent; cursor: pointer; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; color: var(--text); transition: all 0.15s; }
+    .btn:hover { background: var(--bg); }
+    .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-dark); }
+    .btn-reset { border-color: var(--border); color: var(--muted); }
+    .btn-outline { border: 1px solid var(--accent); color: var(--accent); }
+    .btn-outline:hover { background: var(--accent-light); }
+    .status-text { font-size: 13px; color: var(--muted); }
+
+    /* Score panel */
+    .score-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; text-align: center; margin-bottom: 1.5rem; display: none; }
+    .score-panel.visible { display: block; }
+    .score-circle { width: 100px; height: 100px; border-radius: 50%; background: var(--accent-light); border: 3px solid var(--accent); display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 0 auto 1rem; }
+    .score-num { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--accent-dark); line-height: 1; }
+    .score-denom { font-size: 12px; color: var(--accent); font-weight: 500; }
+    .score-title { font-family: 'DM Serif Display', serif; font-size: 20px; margin-bottom: 6px; }
+    .score-desc { font-size: 14px; color: var(--muted); margin-bottom: 1.5rem; }
+
+    /* Toast */
+    .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--text); color: #fff; font-size: 14px; padding: 10px 20px; border-radius: 99px; opacity: 0; pointer-events: none; transition: all 0.3s; white-space: nowrap; z-index: 999; }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 500px) {
+      .exam-header { padding: 1.25rem; }
+      .q-card { padding: 1.1rem; }
+      .stats-row { gap: 8px; }
+      .stat-box { padding: 10px 8px; }
+      .center-card { padding: 2rem 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- VIEW 1: Login / Welcome Screen -->
+<div id="loginView" class="page view active-view">
+  <div class="center-card">
+    <h1 class="center-title">HSC ICT Model Test</h1>
+    <p class="center-subtitle">পরীক্ষা শুরু করার আগে আপনার নাম প্রদান করুন</p>
+    
+    <div class="input-group">
+      <input class="form-input" id="studentName" type="text" placeholder="শিক্ষার্থীর নাম লিখুন..." autocomplete="off" />
+    </div>
+
+    <div class="btn-group">
+      <button class="btn btn-outline" onclick="goToDashboard()">Dashboard দেখুন</button>
+      <button class="btn btn-primary" onclick="startExam()">পরীক্ষা শুরু করুন</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW 2: Dashboard Screen -->
+<div id="dashboardView" class="page view">
+  <div class="exam-header">
+    <div>
+      <h1 class="exam-title">Results Dashboard</h1>
+      <p class="exam-subtitle">সকল পরীক্ষার্থীর ফলাফল নিচে দেওয়া হলো</p>
+    </div>
+    <div class="meta-chips">
+      <button class="btn btn-primary" style="padding: 6px 14px; font-size:12px;" onclick="goToLogin()">Back to Home</button>
+    </div>
+  </div>
+
+  <div class="table-container" style="overflow-x:auto;">
+    <table>
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Student Name</th>
+          <th>Score</th>
+          <th>Accuracy</th>
+          <th>Date & Time</th>
+        </tr>
+      </thead>
+      <tbody id="dashboardTableBody">
+        <!-- Rows injected via JS -->
+      </tbody>
+    </table>
+  </div>
+  
+  <div style="text-align:center;">
+    <button class="btn" style="color:#E24B4A; border-color:#E24B4A" onclick="clearDashboard()">Clear History</button>
+  </div>
+</div>
+
+<!-- VIEW 3: Exam Screen -->
+<div id="examView" class="page view">
+  <div class="exam-header">
+    <div>
+      <h1 class="exam-title" id="examTitle">HSC ICT Model Test</h1>
+      <p class="exam-subtitle">সঠিক উত্তরটি নির্বাচন করুন</p>
+    </div>
+    <div class="meta-chips">
+      <span class="chip" id="studentBadge">Student</span>
+      <span class="chip" id="qChip">0 questions</span>
+    </div>
+  </div>
+
+  <div class="score-panel" id="scorePanel">
+    <div class="score-circle">
+      <span class="score-num" id="scoreNum">0</span>
+      <span class="score-denom" id="scoreDenom">/ 0</span>
+    </div>
+    <p class="score-title" id="scoreTitle">Well done!</p>
+    <p class="score-desc" id="scoreDesc">Here are your results below.</p>
+    
+    <div class="btn-group">
+      <button class="btn btn-outline" onclick="goToDashboard()">Dashboard দেখুন</button>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-val" id="totalStat">0</div><div class="stat-label">Total</div></div>
+    <div class="stat-box"><div class="stat-val green" id="answeredStat">0</div><div class="stat-label">Answered</div></div>
+    <div class="stat-box"><div class="stat-val amber" id="remainStat">0</div><div class="stat-label">Remaining</div></div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-info">
+      <span>Progress</span>
+      <span id="pctLabel">0%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div id="questionsContainer"></div>
+
+  <div class="actions">
+    <button class="btn btn-reset" id="resetBtn" onclick="resetExamAndGoHome()" style="display:none">↺ Home</button>
+    <div style="display:flex;align-items:center;gap:14px; margin-left:auto;">
+      <span class="status-text" id="statusText">0 of 0 answered</span>
+      <button class="btn btn-primary" id="submitBtn" onclick="submitExam()">Submit exam</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const LETTERS = ["A","B","C","D","E","F"];
+
+  // Questions Database (Cleaned up options without brackets)
+  let questions = [
+    { text: "বিশ্বগ্রাম বা 'গ্লোবাল ভিলেজ' ধারণার প্রবক্তা কে?", options: ["মার্ক জুকারবার্গ", "মার্শাল ম্যাকলুহান", "চার্লস ব্যাবেজ", "টিম বার্নার্স-লি"], correct: 1, answer: null },
+    { text: "মার্শাল ম্যাকলুহান কত সালে 'গ্লোবাল ভিলেজ' বা বিশ্বগ্রামের ধারণাটি প্রদান করেন?", options: ["১৯৫০ সালে", "১৯৬০ সালে", "১৯৬২ সালে", "১৯৭২ সালে"], correct: 2, answer: null },
+    { text: "গ্লোবাল ভিলেজ বা বিশ্বগ্রামের মেরুদণ্ড বা 'ব্যাকবোন' বলা হয় কোন উপাদানটিকে?", options: ["কানেক্টিভিটি বা ইন্টারনেট", "হার্ডওয়্যার", "ডেটা", "সফটওয়্যার"], correct: 0, answer: null },
+    { text: "বিশ্বগ্রাম প্রতিষ্ঠার মূল উপাদান কয়টি?", options: ["৩টি", "৪টি", "৬টি", "৫টি"], correct: 3, answer: null },
+    { text: "ভার্চুয়াল রিয়েলিটিতে কোন মাত্রার ইমেজ বা চিত্র ব্যবহার করা হয়?", options: ["একমাত্রিক", "দ্বিমাত্রিক", "ত্রিমাত্রিক", "চতুর্মাত্রিক"], correct: 2, answer: null },
+    { text: "ভার্চুয়াল রিয়েলিটিতে মাথায় যে বিশেষ ডিভাইসটি পরা হয় তার নাম কী?", options: ["3D Glasses", "Head Mounted Display", "Virtual Helmet", "Data Screen"], correct: 1, answer: null },
+    { text: "কৃত্রিম বুদ্ধিমত্তা বা 'Artificial Intelligence' শব্দটির প্রবর্তক কে?", options: ["অ্যালান টুরিং", "জন ভন নিউম্যান", "জন ম্যাকার্থি", "অ্যাডা লাভলেস"], correct: 2, answer: null },
+    { text: "কম্পিউটার বিজ্ঞানের জনক এবং কৃত্রিম বুদ্ধিমত্তার অন্যতম পথিকৃৎ কাকে বলা হয়?", options: ["অ্যালান টুরিং", "চার্লস ব্যাবেজ", "মার্ক জুকারবার্গ", "বিল গেটস"], correct: 0, answer: null },
+    { text: "রোবট (Robot) শব্দটি কোন ভাষা থেকে এসেছে?", options: ["ল্যাটিন ভাষা", "ফরাসি ভাষা", "গ্রিক ভাষা", "স্লাভিক ভাষা"], correct: 3, answer: null },
+    { text: "চেক শব্দ 'রোবটা' (Robota) এর অর্থ কী?", options: ["স্বাধীন যন্ত্র", "শ্রমিক বা দাস", "কৃত্রিম বুদ্ধিমত্তা", "স্বয়ংক্রিয় গাড়ি"], correct: 1, answer: null },
+    { text: "ক্রায়োসার্জারি পদ্ধতিতে অত্যাধিক ঠান্ডায় অস্বাভাবিক টিস্যু ধ্বংস করতে কোন তরলটি বেশি ব্যবহৃত হয়?", options: ["তরল নাইট্রোজেন", "তরল অক্সিজেন", "তরল হাইড্রোজেন", "তরল হিলিয়াম"], correct: 0, answer: null },
+    { text: "আধুনিক ক্রায়োসার্জারির জনক কাকে বলা হয়?", options: ["পলিন হগওয়েগ", "জন ম্যাকার্থি", "ডঃ আরভিং কুপার", "অ্যালান টুরিং"], correct: 2, answer: null },
+    { text: "একজন ব্যক্তিকে অদ্বিতীয়ভাবে শনাক্ত করার প্রযুক্তিকে কী বলা হয়?", options: ["বায়োইনফরমেটিক্স", "বায়োমেট্রিক্স", "জেনেটিক ইঞ্জিনিয়ারিং", "ন্যানোটেকনোলজি"], correct: 1, answer: null },
+    { text: "আচরণগত বৈশিষ্ট্যের ওপর ভিত্তি করে বায়োমেট্রিক্সের একটি উদাহরণ কোনটি?", options: ["কণ্ঠস্বর বা ভয়েস রিকগনিশন", "ফিঙ্গারপ্রিন্ট", "আইরিশ স্ক্যান", "ডিএনএ স্ক্যান"], correct: 0, answer: null },
+    { text: "জীববিজ্ঞান সংক্রান্ত তথ্যাদি কম্পিউটার প্রযুক্তির মাধ্যমে বিশ্লেষণ করার পদ্ধতিকে কী বলে?", options: ["জেনেটিক ইঞ্জিনিয়ারিং", "বায়োমেট্রিক্স", "ন্যানোটেকনোলজি", "বায়োইনফরমেটিক্স"], correct: 3, answer: null },
+    { text: "কোন প্রযুক্তির সাহায্যে আণবিক পর্যায়ে বস্তুকে পরিবর্তন বা নিয়ন্ত্রণ করা হয়?", options: ["ন্যানোটেকনোলজি", "বায়োইনফরমেটিক্স", "রোবটিক্স", "ক্রায়োসার্জারি"], correct: 0, answer: null },
+    { text: "উদ্ভিদ বা প্রাণীর ডিএনএ-তে কৃত্রিম পরিবর্তনের মাধ্যমে নতুন বৈশিষ্ট্য সৃষ্টির প্রযুক্তিকে কী বলে?", options: ["ন্যানোটেকনোলজি", "জেনেটিক ইঞ্জিনিয়ারিং", "বায়োমেট্রিক্স", "বায়োইনফরমেটিক্স"], correct: 1, answer: null },
+    { text: "সফটওয়্যারের কোড বা অন্যের লেখা চুরি করে নিজের নামে চালিয়ে দেওয়ার অপরাধকে কী বলে?", options: ["হ্যাকিং", "প্লেজিয়ারিজম", "ফিশিং", "স্প্যামিং"], correct: 1, answer: null },
+    { text: "উইন্ডোজ (Windows) মূলত কী ধরনের সফটওয়্যার?", options: ["অ্যাপ্লিকেশন সফটওয়্যার", "ইউটিলিটি সফটওয়্যার", "অপারেটিং সিস্টেম", "ব্রাউজার"], correct: 2, answer: null },
+    { text: "ইতিহাসের প্রথম কম্পিউটার ভাইরাস হিসেবে পরিচিত কোনটি?", options: ["ক্রিপার", "মরিস ওয়ার্ম", "আই লাভ ইউ", "মেলিসা"], correct: 0, answer: null },
+    { text: "কম্পিউটার কিবোর্ডে ফাংশন কি (Function Key) কয়টি থাকে?", options: ["১০টি", "১২টি", "১৪টি", "৮টি"], correct: 1, answer: null },
+    { text: "জাতীয় আইসিটি দিবস বাংলাদেশে প্রতি বছর কত তারিখে পালিত হয়?", options: ["২১শে ফেব্রুয়ারি", "১৬ই ডিসেম্বর", "১২ই ডিসেম্বর", "২৬শে মার্চ"], correct: 2, answer: null },
+    { text: "WWW এর পূর্ণরূপ কী?", options: ["World Web Wide", "Wide World Web", "World Wide Word", "World Wide Web"], correct: 3, answer: null },
+    { text: "স্মার্ট ফ্রিজ বা স্মার্ট হোম ডিভাইসগুলো কোন প্রযুক্তির উদাহরণ?", options: ["IoT", "Artificial Intelligence", "Virtual Reality", "Cloud Computing"], correct: 0, answer: null },
+    { text: "কোন মেমোরিকে 'নন-ভোলাটাইল' মেমোরি বলা হয়?", options: ["র‍্যাম", "ক্যাশ", "রম", "রেজিস্টার"], correct: 2, answer: null },
+    { text: "ইন্টারনেট এক্সপ্লোরার (Internet Explorer) কী ধরনের টুল?", options: ["সার্চ ইঞ্জিন", "ব্রাউজার", "অপারেটিং সিস্টেম", "সোশ্যাল মিডিয়া"], correct: 1, answer: null },
+    { text: "সিআইএইচ (CIH) মূলত কীসের নাম?", options: ["কম্পিউটার ভাইরাস", "অ্যান্টিভাইরাস", "হার্ডওয়্যার", "প্রোগ্রামিং ভাষা"], correct: 0, answer: null },
+    { text: "মোডেম (Modem) কোন দুটি শব্দের সমন্বয়ে গঠিত?", options: ["Modern এবং Machine", "Mobile এবং Demodulator", "Modulator এবং Device", "Modulator এবং Demodulator"], correct: 3, answer: null },
+    { text: "কম্পিউটারের প্রধান আউটপুট ডিভাইস কোনটি?", options: ["কিবোর্ড", "মনিটর", "মাউস", "স্ক্যানার"], correct: 1, answer: null },
+    { text: "পৃথিবীর প্রথম সার্চ ইঞ্জিনের নাম কী?", options: ["গুগল", "বিং", "আর্চি", "ইয়াহু"], correct: 2, answer: null }
+  ];
+
+  let submitted = false;
+  let currentUser = "";
+
+  // View Navigation
+  function switchView(viewId) {
+    document.querySelectorAll('.view').forEach(el => el.classList.remove('active-view'));
+    document.getElementById(viewId).classList.add('active-view');
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function goToLogin() {
+    document.getElementById('studentName').value = '';
+    switchView('loginView');
+  }
+
+  function goToDashboard() {
+    renderDashboard();
+    switchView('dashboardView');
+  }
+
+  function startExam() {
+    const nameInput = document.getElementById('studentName').value.trim();
+    if (!nameInput) {
+      showToast("দয়া করে আপনার নাম লিখুন!");
+      document.getElementById('studentName').focus();
+      return;
+    }
+    currentUser = nameInput;
+    document.getElementById('studentBadge').textContent = `👤 ${currentUser}`;
+
+    resetExamState();
+    renderExam();
+    switchView('examView');
+  }
+
+  // Dashboard Logic
+  function renderDashboard() {
+    let history = JSON.parse(localStorage.getItem('ictExamResults')) || [];
+    const tbody = document.getElementById('dashboardTableBody');
+    tbody.innerHTML = '';
+
+    if (history.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--muted); padding: 2rem;">এখনো কেউ পরীক্ষা দেয়নি।</td></tr>';
+      return;
+    }
+
+    // Sort by Score (Desc) -> then by Date (Asc)
+    history.sort((a, b) => b.score - a.score || new Date(a.rawDate) - new Date(b.rawDate));
+
+    history.forEach((r, index) => {
+      let rankIcon = index + 1;
+      if(index === 0) rankIcon = '🥇 1';
+      else if(index === 1) rankIcon = '🥈 2';
+      else if(index === 2) rankIcon = '🥉 3';
+
+      tbody.innerHTML += `
+        <tr>
+          <td class="rank">${rankIcon}</td>
+          <td style="font-weight: 500">${r.name}</td>
+          <td><span class="score-badge">${r.score} / ${r.total}</span></td>
+          <td>${r.pct}%</td>
+          <td style="font-size:12px; color:var(--muted)">${r.dateStr}</td>
+        </tr>
+      `;
+    });
+  }
+
+  function clearDashboard() {
+    if(confirm("আপনি কি ড্যাশবোর্ডের সকল তথ্য মুছে ফেলতে চান?")) {
+      localStorage.removeItem('ictExamResults');
+      renderDashboard();
+      showToast("ড্যাশবোর্ড ক্লিয়ার করা হয়েছে।");
+    }
+  }
+
+  // Exam Logic
+  function renderExam() {
+    const container = document.getElementById("questionsContainer");
+    container.innerHTML = "";
+
+    questions.forEach((q, qi) => {
+      const card = document.createElement("div");
+      card.className = "q-card" + (q.answer !== null ? " answered" : "");
+
+      let optionsHTML = q.options.map((opt, oi) => {
+        let cls = "option";
+        if (submitted) {
+          cls += " disabled";
+          if (oi === q.correct) cls += " correct";
+          else if (oi === q.answer && q.answer !== q.correct) cls += " wrong";
+        } else if (q.answer === oi) {
+          cls += " selected";
+        }
+        return `<div class="${cls}" onclick="selectAnswer(${qi}, ${oi})">
+          <div class="opt-letter">${LETTERS[oi]}</div>
+          <div class="opt-text">${opt}</div>
+        </div>`;
+      }).join("");
+
+      let resultBadge = "";
+      if (submitted && q.answer !== null) {
+        if (q.answer === q.correct) {
+          resultBadge = `<div class="result-badge correct-badge">✓ Correct</div>`;
+        } else {
+          resultBadge = `<div class="result-badge wrong-badge">✗ Incorrect — সঠিক উত্তর: ${LETTERS[q.correct]}</div>`;
+        }
+      }
+
+      card.innerHTML = `
+        <div class="q-top">
+          <div class="q-num">${qi + 1}</div>
+          <div class="q-text">${q.text}</div>
+        </div>
+        <div class="options">${optionsHTML}</div>
+        ${resultBadge}
+      `;
+      container.appendChild(card);
+    });
+
+    updateStats();
+  }
+
+  function selectAnswer(qi, oi) {
+    if (submitted) return;
+    questions[qi].answer = oi;
+    renderExam();
+  }
+
+  function updateStats() {
+    const total = questions.length;
+    const answered = questions.filter(q => q.answer !== null).length;
+    const remain = total - answered;
+    const pct = total ? Math.round((answered / total) * 100) : 0;
+
+    document.getElementById("totalStat").textContent = total;
+    document.getElementById("answeredStat").textContent = answered;
+    document.getElementById("remainStat").textContent = remain;
+    document.getElementById("progressFill").style.width = pct + "%";
+    document.getElementById("pctLabel").textContent = pct + "%";
+    document.getElementById("statusText").textContent = answered + " of " + total + " answered";
+    document.getElementById("qChip").textContent = total + " Questions";
+    document.getElementById("scoreDenom").textContent = "/ " + total;
+  }
+
+  function submitExam() {
+    const unanswered = questions.filter(q => q.answer === null).length;
+    if (unanswered > 0) {
+      showToast("আপনার " + unanswered + " টি প্রশ্নের উত্তর এখনও বাকি আছে!");
+      return;
+    }
+
+    submitted = true;
+    const score = questions.filter(q => q.answer === q.correct).length;
+    const total = questions.length;
+    const pct = Math.round((score / total) * 100);
+
+    // Save to LocalStorage
+    saveResultToDashboard(score, total, pct);
+
+    // Update Score Panel
+    const panel = document.getElementById("scorePanel");
+    panel.classList.add("visible");
+    document.getElementById("scoreNum").textContent = score;
+
+    let title = "চমৎকার!";
+    let desc = "আপনার পারফরম্যান্স অসাধারণ — ফুল মার্কস!";
+    if (pct < 50) { title = "আরও অনুশীলন প্রয়োজন!"; desc = "নিচের ভুলগুলো দেখে নিন।"; }
+    else if (pct < 75) { title = "ভালো চেষ্টা!"; desc = "আপনি সঠিক পথেই আছেন — নিচের ভুলগুলো মিলিয়ে নিন।"; }
+    else if (pct < 100) { title = "খুব ভালো!"; desc = "দারুণ স্কোর! আপনার ভুলগুলো নিচে দেখে নিতে পারেন।"; }
+
+    document.getElementById("scoreTitle").textContent = title;
+    document.getElementById("scoreDesc").textContent = desc;
+
+    document.getElementById("submitBtn").style.display = "none";
+    document.getElementById("resetBtn").style.display = "inline-block";
+
+    renderExam();
+    panel.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function saveResultToDashboard(score, total, pct) {
+    let history = JSON.parse(localStorage.getItem('ictExamResults')) || [];
+    
+    // Setup Date String
+    const d = new Date();
+    const dateStr = d.toLocaleDateString('en-GB') + " " + d.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'});
+
+    history.push({
+      name: currentUser,
+      score: score,
+      total: total,
+      pct: pct,
+      dateStr: dateStr,
+      rawDate: d.toISOString()
+    });
+    
+    localStorage.setItem('ictExamResults', JSON.stringify(history));
+  }
+
+  function resetExamState() {
+    submitted = false;
+    questions.forEach(q => q.answer = null);
+    document.getElementById("scorePanel").classList.remove("visible");
+    document.getElementById("submitBtn").style.display = "inline-block";
+    document.getElementById("resetBtn").style.display = "none";
+  }
+
+  function resetExamAndGoHome() {
+    resetExamState();
+    goToLogin();
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 2800);
+  }
+
+  // Handle Enter key on login
+  document.getElementById("studentName").addEventListener("keypress", function(e) {
+    if (e.key === "Enter") {
+      startExam();
+    }
+  });
+
+</script>
+</body>
+</html>
