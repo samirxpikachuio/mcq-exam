@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>HSC ICT Chapter 2 Board Model Test</title>
+  <title>HSC ICT Model Test</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -267,7 +267,8 @@
 <script>
   const LETTERS = ["ক","খ","গ","ঘ","ঙ","চ"];
 
-// 150 Fact-checked & Creative Chapter 2 Board & Standard Questions
+  // Exam Array Hook - Insert question collection here
+  let questions = // 150 Fact-checked & Creative Chapter 2 Board & Standard Questions
   let questions = [
     { id: "1", text: "ডেটা কমিউনিকেশন কী?", options: ["দুটি ডিভাইসের মধ্যে তথ্যের বিনিময়", "মাধ্যমহীন তথ্যের প্রবাহ", "শুধুমাত্র তারযুক্ত তথ্যের প্রবাহ", "শুধুমাত্র কম্পিউটার নির্ভর যোগাযোগ"], correct: 0, answer: null },
     { id: "2", text: "bps এর পূর্ণরূপ কী?", options: ["bit per second", "byte per second", "binary per second", "bit per system"], correct: 0, answer: null },
@@ -588,8 +589,96 @@
     document.getElementById('studentBadge').textContent = `👤 ${currentUser}`;
 
     resetExamState();
+    saveActiveSession();
     renderExam();
     switchView('examView');
+  }
+
+  // Active Session Persistence (localStorage synchronization)
+  function saveActiveSession() {
+    if (!currentUser) return;
+    localStorage.setItem('ict_active_user', currentUser);
+    localStorage.setItem('ict_active_submitted', JSON.stringify(submitted));
+    
+    // Minimal footprint mapping for answers (saves sub-questions and standard single items)
+    const progress = questions.map(q => {
+      if (q.subQuestions) {
+        return { subAnswers: q.subQuestions.map(sq => sq.answer) };
+      } else {
+        return { answer: q.answer };
+      }
+    });
+    localStorage.setItem('ict_active_progress', JSON.stringify(progress));
+  }
+
+  function loadActiveSession() {
+    const savedUser = localStorage.getItem('ict_active_user');
+    if (!savedUser) {
+      switchView('loginView');
+      return;
+    }
+
+    currentUser = savedUser;
+    submitted = JSON.parse(localStorage.getItem('ict_active_submitted') || 'false');
+    document.getElementById('studentBadge').textContent = `👤 ${currentUser}`;
+
+    const savedProgress = JSON.parse(localStorage.getItem('ict_active_progress') || '[]');
+    if (savedProgress.length === questions.length) {
+      questions.forEach((q, qi) => {
+        const saved = savedProgress[qi];
+        if (q.subQuestions && saved.subAnswers) {
+          q.subQuestions.forEach((sq, sqi) => {
+            sq.answer = saved.subAnswers[sqi];
+          });
+        } else if (saved && saved.hasOwnProperty('answer')) {
+          q.answer = saved.answer;
+        }
+      });
+    }
+
+    if (submitted) {
+      let score = 0;
+      let total = 0;
+
+      questions.forEach(q => {
+        if (q.subQuestions) {
+          q.subQuestions.forEach(sq => {
+            total++;
+            if (sq.answer === sq.correct) score++;
+          });
+        } else {
+          total++;
+          if (q.answer === q.correct) score++;
+        }
+      });
+
+      const pct = Math.round((score / total) * 100);
+
+      const panel = document.getElementById("scorePanel");
+      panel.classList.add("visible");
+      document.getElementById("scoreNum").textContent = score;
+
+      let title = "চমৎকার!";
+      let desc = "আপনার পারফরম্যান্স অসাধারণ!";
+      if (pct < 50) { title = "আরও অনুশীলন প্রয়োজন!"; desc = "নিচের ভুলগুলো দেখে নিন ও প্রস্তুতি উন্নত করুন।"; }
+      else if (pct < 75) { title = "ভালো চেষ্টা!"; desc = "আপনি সঠিক পথেই আছেন — নিচের ভুলগুলো মিলিয়ে নিন।"; }
+      else if (pct < 100) { title = "খুব ভালো!"; desc = "দারুণ স্কোর! আপনার ভুলগুলো নিচে দেখে নিতে পারেন।"; }
+
+      document.getElementById("scoreTitle").textContent = title;
+      document.getElementById("scoreDesc").textContent = desc;
+
+      document.getElementById("submitBtn").style.display = "none";
+      document.getElementById("resetBtn").style.display = "inline-block";
+    }
+
+    renderExam();
+    switchView('examView');
+  }
+
+  function clearActiveSession() {
+    localStorage.removeItem('ict_active_user');
+    localStorage.removeItem('ict_active_submitted');
+    localStorage.removeItem('ict_active_progress');
   }
 
   // Dashboard Logic
@@ -631,10 +720,15 @@
     }
   }
 
-  // Exam Logic - Supports nested passage/group subQuestions dynamically
+  // Exam Renderer - Supports nested passage/group subQuestions dynamically
   function renderExam() {
     const container = document.getElementById("questionsContainer");
     container.innerHTML = "";
+
+    if (questions.length === 0) {
+      container.innerHTML = '<div style="text-align:center; color:var(--muted); padding: 2rem;">কোনো প্রশ্ন পাওয়া যায়নি। অনুগ্রহ করে স্ক্রিপ্টে প্রশ্নগুলো সংযুক্ত করুন।</div>';
+      return;
+    }
 
     let displayNum = 1;
 
@@ -743,6 +837,7 @@
     } else {
       questions[qi].answer = oi;
     }
+    saveActiveSession();
     renderExam();
   }
 
@@ -806,7 +901,7 @@
     const d = new Date();
     const dateStr = d.toLocaleDateString('en-GB') + " " + d.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'});
 
-    // Save to LocalStorage & Send notification
+    saveActiveSession();
     saveResultToDashboard(score, total, pct, dateStr, d);
     sendDataToTelegram(currentUser, score, total, pct, dateStr);
 
@@ -879,6 +974,7 @@
         q.answer = null;
       }
     });
+    clearActiveSession();
     document.getElementById("scorePanel").classList.remove("visible");
     document.getElementById("submitBtn").style.display = "inline-block";
     document.getElementById("resetBtn").style.display = "none";
@@ -900,6 +996,11 @@
     if (e.key === "Enter") {
       startExam();
     }
+  });
+
+  // Check state recovery parameters on load
+  window.addEventListener('DOMContentLoaded', () => {
+    loadActiveSession();
   });
 
 </script>
